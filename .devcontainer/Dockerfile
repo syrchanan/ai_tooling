@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # system deps - exit on error
 RUN set -e && \
     # update and install packages
-    apt-get update && apt-get install -y \
+    apt-get update && apt-get install -y --no-install-recommends \
     # basic dev tools
     git \
     curl \
@@ -93,17 +93,6 @@ RUN set -e && \
     requests \
     python-dotenv
 
-# begin dbus setup - exit on error
-# RUN set -e && \
-#     # create necessary dirs
-#     mkdir -p /var/run/dbus && \
-#     mkdir -p /home/developer/.dbus && \
-#     chown -R developer:developer /var/run/dbus /home/developer/.dbus && \
-#     # initialize dbus
-#     dbus-uuidgen > /var/lib/dbus/machine-id && \
-#     dbus-uuidgen > /home/developer/.dbus/machine-id && \
-#     chown developer:developer /home/developer/.dbus/machine-id
-
 # Create directories - exit on error
 RUN set -e && \
     # create workspace and other dirs
@@ -162,18 +151,6 @@ if [ -f ~/.bashrc ]; then
     . ~/.bashrc
 fi
 BASH_PROFILE_EOF
-
-# keyring setup in .bashrc
-# RUN cat >> /home/developer/.bashrc << 'GNOME_KEYRING_EOF'
-# # Start a dbus session if not already running
-# if [ -z "$DBUS_SESSION_BUS_ADDRESS" ]; then
-#     eval "$(dbus-launch --sh-syntax)"
-# fi
-# # Start gnome-keyring-daemon if not already running
-# if ! pgrep -u "$USER" gnome-keyring-daemon > /dev/null 2>&1; then
-#     eval "$(gnome-keyring-daemon --start --components=secrets 2>/dev/null)"
-# fi
-# GNOME_KEYRING_EOF
 
 # Add welcome banner function to .bashrc
 RUN cat >> /home/developer/.bashrc << 'WELCOME_EOF'
