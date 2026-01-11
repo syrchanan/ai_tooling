@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file (via AI, min
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.0] - 2026-01-11
+### Added
+- `WIP_get_creds.sh`: Toy script working towards copying existing goose credentials into the devcontainer for seamless authentication.
+
+### Changed
+- `.devcontainer/Dockerfile`: R (latest) and Julia (latest via `juliaup`) now included in the devcontainer for multi-language support.
+- `.devcontainer/devcontainer.json`: Julia extension for VS Code/Positron added to the recommended list.
+- `README.md`: Updated to reflect the addition of R and Julia in the devcontainer setup.
+- `notes.md`: Removed notes on completed TODOs.
+
+### Removed
+- `upgrades.md`: Planned upgrades completed.
+
 ## [0.0.1] - 2025-12-16
 ### Added
 - `.devcontainer/Dockerfile`: Python devcontainer with Goose CLI, common dev tools, and Python packages.
@@ -13,6 +26,3 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Changed
 - Expanded `README.md` to document new devcontainer and agent configuration files, usage, and standards.
-
-### Fixed
-- N/A

@@ -6,11 +6,13 @@ ARG TARGETARCH
 
 # setup env
 ENV DEBIAN_FRONTEND=noninteractive
-ENV LANG en_US.UTF-8  
-ENV LANGUAGE en_US:en  
-ENV LC_ALL en_US.UTF-8
+ENV LANG=en_US.UTF-8  
+ENV LANGUAGE=en_US:en  
+ENV LC_ALL=en_US.UTF-8
+ENV JULIAUP_DEPOT_PATH=/opt/juliaup
+ENV JULIA_DEPOT_PATH=/opt/julia
 
-# install packages - exit on error
+# install base packages and R/Julia - exit on error
 RUN <<INSTALL_EOF
     set -ex
     # GENERAL ----
@@ -27,6 +29,9 @@ RUN <<INSTALL_EOF
     ln -sf /usr/bin/Rscript /usr/local/bin/Rscript
     echo "en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8" >> /etc/locale.gen
     locale-gen
+    # JULIA ----
+    curl -fsSL https://install.julialang.org | sh -s -- --yes --path /opt/juliaup
+    chmod -R 777 /opt/juliaup
     # CLEANUP ----
     rm -rf /var/lib/apt/lists/*
 INSTALL_EOF
@@ -70,15 +75,17 @@ USER_EOF
 
 # create bashenv additions
 COPY --chown=developer:developer <<'BASHENV_EOF' /home/developer/.bashenv
-export PATH="/usr/local/bin:$PATH"
+export PATH="/usr/local/bin:/opt/juliaup/bin:$PATH"
 export PYTHONPATH="${PYTHONPATH}:/workspaces"
 export GOOSE_DISABLE_KEYRING=1
 BASHENV_EOF
 
 # create bashrc additions - exit on error
 COPY --chown=developer:developer <<'BASHRC_EOF' /home/developer/.bashrc
-# source bashenv if it exists and set history file to shared volume
+# source bashenv and juliaup root if it exists
 [ -f ~/.bashenv ] && source ~/.bashenv
+[ -f /root/.bashrc ] && source /root/.bashrc
+set history file to shared volume
 export HISTFILE=/commandhistory/.bash_history
 export HISTSIZE=10000
 export HISTFILESIZE=20000
@@ -98,7 +105,8 @@ if [[ $- == *i* ]]; then
     echo ""
     echo " Python:      $(python --version 2>&1)"
     echo " R:           $(R --version | head -n 1 2>&1)"
-    echo " Goose:       $(goose --version 2>&1)"
+    echo " Julia:       $(julia --version 2>&1)"
+    echo " Goose:      $(goose --version 2>&1)"
     echo ""
     echo " Useful Commands:"
     echo "  - goose configure         Configure your Goose environment"
@@ -119,6 +127,7 @@ COPY --chown=developer:developer <<'HEALTHCHECK_EOF' /usr/local/bin/healthcheck.
 echo "=== System Health Check ==="
 echo "Python: $(python --version)"
 echo "R: $(R --version | head -n 1)"
+echo "Julia: $(julia --version)"
 echo "Goose: $(goose --version)"
 echo "Shell: $SHELL"
 HEALTHCHECK_EOF

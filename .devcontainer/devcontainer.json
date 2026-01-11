@@ -16,6 +16,8 @@
         "meta.pyrefly",
         "ms-python.debugpy",
         "ms-python.vscode-python-envs",
+        // julia support
+        "julialang.language-julia",
         //custom picks
         "charliermarsh.ruff",
         "Gruntfuggly.todo-tree",
