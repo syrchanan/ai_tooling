@@ -1,6 +1,12 @@
 #syntax=docker/dockerfile:1
 FROM python:3
 
+LABEL maintainer="Connor Hanan"
+LABEL org.opencontainers.image.title="datascience-goose"
+LABEL org.opencontainers.image.authors="Connor Hanan"
+LABEL org.opencontainers.image.description="Python, R, Julia + goose Development Container"
+LABEL org.opencontainers.image.created="2026-01-12"
+
 # build args
 ARG TARGETARCH
 
@@ -25,7 +31,9 @@ RUN <<INSTALL_EOF
         \
         r-base r-base-dev \
         libcurl4-openssl-dev libssl-dev libxml2-dev
-    # R symlink and set locals
+    # PYTHON ----
+    pip install --no-cache-dir --upgrade pip uv
+    # R ----
     ln -sf /usr/bin/Rscript /usr/local/bin/Rscript
     echo "en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8" >> /etc/locale.gen
     locale-gen
@@ -100,16 +108,25 @@ alias grep='grep --color=auto'
 if [[ $- == *i* ]]; then
     echo ""
     echo "╔════════════════════════════════════════════════════════╗"
-    echo "║  Python + Goose Development Container                  ║"
+    echo "║  Python, R, Julia + goose Development Container        ║"
     echo "╚════════════════════════════════════════════════════════╝"
     echo ""
     echo " Python:      $(python --version 2>&1)"
     echo " R:           $(R --version | head -n 1 2>&1)"
     echo " Julia:       $(julia --version 2>&1)"
-    echo " Goose:      $(goose --version 2>&1)"
+    echo " goose:      $(goose --version 2>&1)"
+    echo ""
+    echo " Notes:"
+    echo "  - Your workspace is located at /workspaces"
+    echo "  - Prefer 'uv' to 'pip' for installing Python packages"
     echo ""
     echo " Useful Commands:"
-    echo "  - goose configure         Configure your Goose environment"
+    echo "  - goose configure         Configure your goose environment"
+    echo "  - goose session           Start a new goose session"
+    echo "  - goose session -r        Resume last goose session"
+    echo "  - goose web --open        Start goose web interface (experimental)"
+    echo ""
+    echo " Visit https://block.github.io/goose/docs/category/guides for more information."
     echo ""
 fi
 BASHRC_EOF

@@ -56,7 +56,6 @@
       }
     }
   },
-  //mounts here
   "remoteUser": "developer",
   "workspaceFolder": "/workspaces",
   "forwardPorts": [
@@ -65,8 +64,6 @@
     3000,
     8080
   ],
-  // "postCreateCommand": "",
-  // "postStartCommand": "",
   "remoteEnv": {
     "PYTHONPATH": "${PYTHONPATH}:/workspaces",
     "HISTFILE": "/commandhistory/.bash_history",
@@ -75,5 +72,7 @@
   "containerEnv": {
     "DEVCONTAINER": "true"
   },
+  // install dependencies if found
+  "postStartCommand": "/bin/bash .devcontainer/poststart.sh",
   "shutdownAction": "stopContainer"
 }
