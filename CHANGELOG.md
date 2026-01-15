@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file (via AI, min
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.2] - unreleased
+### Added
+- `ralph/ralph-loop.sh`: Bash script for running the Ralph Loop (multi-model, iterative agent workflow).
+- `ralph/ralph-work.yaml`: Goose recipe for Ralph work phase (single iteration, fresh context).
+- `ralph/ralph-review.yaml`: Goose recipe for Ralph review phase (cross-model review, SHIP/REVISE decision).
+
 ## [0.1.1] - 2026-01-12
 ### Added
 - `.devcontainer/poststart.sh`: Post-start script to auto-install detected Python, R, and Julia dependencies for all projects in the workspace.
