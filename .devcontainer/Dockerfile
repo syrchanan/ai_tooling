@@ -9,14 +9,21 @@ LABEL org.opencontainers.image.created="2026-01-12"
 
 # build args
 ARG TARGETARCH
+ARG INCLUDE_GOOSE=true
+ARG INCLUDE_R=true
+ARG INCLUDE_JULIA=true
+ARG INCLUDE_RALPH=false
 
 # setup env
 ENV DEBIAN_FRONTEND=noninteractive
-ENV LANG=en_US.UTF-8  
-ENV LANGUAGE=en_US:en  
-ENV LC_ALL=en_US.UTF-8
-ENV JULIAUP_DEPOT_PATH=/opt/juliaup
-ENV JULIA_DEPOT_PATH=/opt/julia
+    LANG=en_US.UTF-8  
+    LANGUAGE=en_US:en  
+    LC_ALL=en_US.UTF-8
+    JULIAUP_DEPOT_PATH=/opt/juliaup
+    JULIA_DEPOT_PATH=/opt/julia
+    INCLUDE_R={$INCLUDE_R}
+    INCLUDE_JULIA={$INCLUDE_JULIA}
+    INCLUDE_GOOSE={$INCLUDE_GOOSE}
 
 # install base packages and R/Julia - exit on error
 RUN <<INSTALL_EOF
@@ -27,25 +34,34 @@ RUN <<INSTALL_EOF
         git curl vim wget htop tree zip unzip jq less sudo locales \
         build-essential pkg-config \
         openssh-client ca-certificates gnupg \
-        ripgrep \
-        \
-        r-base r-base-dev \
-        libcurl4-openssl-dev libssl-dev libxml2-dev
-    # PYTHON ----
-    pip install --no-cache-dir --upgrade pip uv
-    # R ----
-    ln -sf /usr/bin/Rscript /usr/local/bin/Rscript
-    echo "en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8" >> /etc/locale.gen
+        ripgrep
+    # set locale
+    echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
     locale-gen
-    # JULIA ----
-    curl -fsSL https://install.julialang.org | sh -s -- --yes --path /opt/juliaup
-    chmod -R 777 /opt/juliaup
+    # PYTHON (Base Image) ----
+    pip install --no-cache-dir --upgrade pip uv
+    # R (Conditional) ----
+    if [ "$INCLUDE_R" = "true" ]; then
+        apt-get update && apt-get install -y --no-install-recommends \
+            r-base r-base-dev libcurl4-openssl-dev libssl-dev libxml2-dev
+        ln -sf /usr/bin/Rscript /usr/local/bin/Rscript
+    fi
+    # JULIA (Conditional) ----
+    if [ "$INCLUDE_JULIA" = "true" ]; then
+        curl -fsSL https://install.julialang.org | sh -s -- --yes --path /opt/juliaup
+        chmod -R 777 /opt/juliaup
+    fi
     # CLEANUP ----
+    apt-get clean
     rm -rf /var/lib/apt/lists/*
 INSTALL_EOF
 
 # install goose
 RUN <<GOOSE_EOF
+    if [ "$INCLUDE_GOOSE" != "true" ]; then
+        echo "Skipping Goose installation."
+        exit 0
+    fi
     set -ex
     trap 'rm -rf /tmp/goose-cli.tar.bz2 /tmp/goose-extract' EXIT
     # check architecture and download appropriate binary
@@ -66,6 +82,20 @@ RUN <<GOOSE_EOF
     chmod +x /usr/local/bin/goose
     rm -rf /tmp/goose-cli.tar.bz2 /tmp/goose-extract
     goose --version
+    # optional Ralph for goose installation
+    if [ "$INCLUDE_RALPH" = "true" ]; then
+        set -ex
+        mkdir -p /home/developer/.config/goose/recipes
+        # sparse checkout ralph folder from ai_tooling repo
+        git clone --filter=blob:none --no-checkout https://github.com/syrchanan/ai_tooling.git /tmp/ai_tooling
+        cd /tmp/ai_tooling
+        git sparse-checkout init --cone
+        git sparse-checkout set ralph
+        git checkout main
+        mv ralph /home/developer/.config/goose/recipes
+        cd /
+        rm -rf /tmp/ai_tooling
+    fi
 GOOSE_EOF
 
 # Create dev user, workspace and .ssh directories - exit on error
@@ -112,14 +142,22 @@ if [[ $- == *i* ]]; then
     echo "╚════════════════════════════════════════════════════════╝"
     echo ""
     echo " Python:      $(python --version 2>&1)"
-    echo " R:           $(R --version | head -n 1 2>&1)"
-    echo " Julia:       $(julia --version 2>&1)"
-    echo " goose:      $(goose --version 2>&1)"
+    if [ "$INCLUDE_R" = "true" ]; then
+    echo " R:      $(R --version | head -n 1 2>&1)"
+    fi
+    if [ "$INCLUDE_JULIA" = "true" ]; then
+    echo " Julia:  $(julia --version 2>&1)"
+    fi
+    if [ "$INCLUDE_GOOSE" = "true" ]; then
+    echo " goose:  $(goose --version 2>&1)"
+    fi
+    echo ""
     echo ""
     echo " Notes:"
     echo "  - Your workspace is located at /workspaces"
     echo "  - Prefer 'uv' to 'pip' for installing Python packages"
     echo ""
+    if [ "$INCLUDE_GOOSE" = "true" ]; then
     echo " Useful Commands:"
     echo "  - goose configure         Configure your goose environment"
     echo "  - goose session           Start a new goose session"
@@ -128,6 +166,7 @@ if [[ $- == *i* ]]; then
     echo ""
     echo " Visit https://block.github.io/goose/docs/category/guides for more information."
     echo ""
+    fi
 fi
 BASHRC_EOF
 
@@ -141,12 +180,10 @@ BASHPROFILE_EOF
 # make healthcheck script
 COPY --chown=developer:developer <<'HEALTHCHECK_EOF' /usr/local/bin/healthcheck.sh
 #!/bin/bash
-echo "=== System Health Check ==="
-echo "Python: $(python --version)"
-echo "R: $(R --version | head -n 1)"
-echo "Julia: $(julia --version)"
-echo "Goose: $(goose --version)"
-echo "Shell: $SHELL"
+command -v python && python --version || exit 1
+[ "$INCLUDE_R" = "true" ] && command -v R && R --version | head -n 1 || exit 1
+[ "$INCLUDE_JULIA" = "true" ] && command -v julia && julia --version || exit 1
+[ "$INCLUDE_GOOSE" = "true" ] && command -v goose && goose --version || exit 1
 HEALTHCHECK_EOF
 
 # finalize permissions and switch to user
@@ -154,7 +191,7 @@ RUN chmod +x /usr/local/bin/healthcheck.sh && \
     chown developer:developer /home/developer/.*
 WORKDIR /workspaces
 USER developer
-HEALTHCHECK --interval=30s --timeout=5s CMD /usr/local/bin/healthcheck.sh || exit 1
+HEALTHCHECK --interval=30s --timeout=5s CMD /usr/local/bin/healthcheck.sh
 
 # set bash as default shell in container
 CMD [ "/bin/bash" ]
