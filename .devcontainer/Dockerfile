@@ -16,14 +16,14 @@ ARG INCLUDE_RALPH=false
 
 # setup env
 ENV DEBIAN_FRONTEND=noninteractive
-    LANG=en_US.UTF-8  
-    LANGUAGE=en_US:en  
-    LC_ALL=en_US.UTF-8
-    JULIAUP_DEPOT_PATH=/opt/juliaup
-    JULIA_DEPOT_PATH=/opt/julia
-    INCLUDE_R={$INCLUDE_R}
-    INCLUDE_JULIA={$INCLUDE_JULIA}
-    INCLUDE_GOOSE={$INCLUDE_GOOSE}
+ENV LANG=en_US.UTF-8  
+ENV LANGUAGE=en_US:en  
+ENV LC_ALL=en_US.UTF-8
+ENV JULIAUP_DEPOT_PATH=/opt/juliaup
+ENV JULIA_DEPOT_PATH=/opt/julia
+ENV INCLUDE_R=$INCLUDE_R
+ENV INCLUDE_JULIA=$INCLUDE_JULIA
+ENV INCLUDE_GOOSE=$INCLUDE_GOOSE
 
 # install base packages and R/Julia - exit on error
 RUN <<INSTALL_EOF
@@ -49,7 +49,10 @@ RUN <<INSTALL_EOF
     # JULIA (Conditional) ----
     if [ "$INCLUDE_JULIA" = "true" ]; then
         curl -fsSL https://install.julialang.org | sh -s -- --yes --path /opt/juliaup
+        mkdir -p /opt/julia
+        chmod -R 777 /opt/julia
         chmod -R 777 /opt/juliaup
+        ln -sf /opt/juliaup/bin/julia /usr/local/bin/julia
     fi
     # CLEANUP ----
     apt-get clean
@@ -92,7 +95,7 @@ RUN <<GOOSE_EOF
         git sparse-checkout init --cone
         git sparse-checkout set ralph
         git checkout main
-        mv ralph /home/developer/.config/goose/recipes
+        mv ralph/* /home/developer/.config/goose/recipes/
         cd /
         rm -rf /tmp/ai_tooling
     fi
@@ -123,12 +126,12 @@ COPY --chown=developer:developer <<'BASHRC_EOF' /home/developer/.bashrc
 # source bashenv and juliaup root if it exists
 [ -f ~/.bashenv ] && source ~/.bashenv
 [ -f /root/.bashrc ] && source /root/.bashrc
-set history file to shared volume
+# set history file to shared volume
 export HISTFILE=/commandhistory/.bash_history
 export HISTSIZE=10000
 export HISTFILESIZE=20000
 shopt -s histappend
-PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+export PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
 # make aliases
 alias ll='ls -laF'
 alias la='ls -la'
@@ -141,15 +144,15 @@ if [[ $- == *i* ]]; then
     echo "║  Python, R, Julia + goose Development Container        ║"
     echo "╚════════════════════════════════════════════════════════╝"
     echo ""
-    echo " Python:      $(python --version 2>&1)"
+    echo " Python:   $(python --version 2>&1)"
     if [ "$INCLUDE_R" = "true" ]; then
-    echo " R:      $(R --version | head -n 1 2>&1)"
+    echo " R:        $(R --version | head -n 1 2>&1)"
     fi
     if [ "$INCLUDE_JULIA" = "true" ]; then
-    echo " Julia:  $(julia --version 2>&1)"
+    echo " Julia:    $(julia --version 2>&1)"
     fi
     if [ "$INCLUDE_GOOSE" = "true" ]; then
-    echo " goose:  $(goose --version 2>&1)"
+    echo " goose:   $(goose --version 2>&1)"
     fi
     echo ""
     echo ""
@@ -188,7 +191,7 @@ HEALTHCHECK_EOF
 
 # finalize permissions and switch to user
 RUN chmod +x /usr/local/bin/healthcheck.sh && \ 
-    chown developer:developer /home/developer/.*
+    chown -R developer:developer /home/developer
 WORKDIR /workspaces
 USER developer
 HEALTHCHECK --interval=30s --timeout=5s CMD /usr/local/bin/healthcheck.sh

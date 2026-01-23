@@ -73,6 +73,6 @@
     "DEVCONTAINER": "true"
   },
   // install dependencies if found
-  "postStartCommand": "/bin/bash .devcontainer/poststart.sh",
+  "postStartCommand": "/bin/bash .devcontainer/poststart.sh | tee /tmp/poststart.log",
   "shutdownAction": "stopContainer"
 }
