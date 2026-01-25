@@ -10,6 +10,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `ralph/ralph-work.yaml`: Goose recipe for Ralph work phase (single iteration, fresh context).
 - `ralph/ralph-review.yaml`: Goose recipe for Ralph review phase (cross-model review, SHIP/REVISE decision).
 
+### Changed
+- `.devcontainer/Dockerfile`: Improved Julia install (added permissions and symlink for Julia binary), and updated Ralph recipe move to use `mv ralph/*` instead of `mv ralph`.
+- `.devcontainer/devcontainer.json`: Updated `postStartCommand` to pipe output to `/tmp/poststart.log` for easier debugging and troubleshooting of dependency installation.
+- `.devcontainer/poststart.sh`: Refactored to use a `process_files` function for each dependency type, added command existence checks before running actions, and improved output messages.
+
+### Fixed
+- `.devcontainer/Dockerfile`: Fixed environment variable syntax for Docker ENV.
+- `.devcontainer/Dockerfile`: Fixed `export` for PROMPT_COMMAND in bashrc.
+- `.devcontainer/Dockerfile`: Fixed `chown` to recursively set ownership for developer home.
+- `.devcontainer/poststart.sh`: Fixed workspace path from `/workspace` to `/workspaces` for correct recursive search.
+
 ## [0.1.1] - 2026-01-12
 ### Added
 - `.devcontainer/poststart.sh`: Post-start script to auto-install detected Python, R, and Julia dependencies for all projects in the workspace.
