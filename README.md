@@ -21,28 +21,9 @@ Development container configurations for Python, R, Julia, and AI tooling.
 - `Dockerfile` — Reproducible dev environment with Python, R, Julia (via juliaup), Goose CLI, and common CLI tools. Includes user setup, shell configuration, and health checks.
 - `devcontainer.json` — VS Code/Positron devcontainer configuration, extensions, and environment settings for Python, R, Julia, and Goose development.
 - `poststart.sh` — Post-start script to auto-install detected Python, R, and Julia dependencies for all projects in the workspace (see below for file targets).
+`config.json` — Configuration for language and platform support.
 
-#### Devcontainer Features
-
-- Python (latest, Debian-based)
-- R (latest)
-- Julia (latest, via juliaup)
-- Goose CLI (installed and on PATH)
-- Common dev tools: git, curl, vim, htop, tree, ripgrep, etc.
-- Preinstalled Python packages: pytest, ipython, requests, python-dotenv
-- Custom shell environment for developer user
-- Health check script and welcome banner (shows Python, R, Julia, Goose versions)
-- VS Code/Positron extensions for Python, R, Julia, linting, formatting, and Jupyter
-
-#### `.devcontainer/poststart.sh`
-
-Post-start script that auto-installs Python, R, and Julia dependencies recursively for all projects in the workspace:
-
-- Installs Python packages from `requirements.txt` and `pyproject.toml` using `uv`
-- Restores R environments from `renv.lock` using `renv`
-- Instantiates Julia environments from `Project.toml`
-
-This script is run automatically after the container starts.
+See [Devcontainer README](./.devcontainer/README.md) for more details.
 
 ### `ralph/`
 Agent workflow scripts and Goose recipes for iterative, cross-model development. Based on the [tutorial at goose](https://block.github.io/goose/docs/tutorials/ralph-loop).

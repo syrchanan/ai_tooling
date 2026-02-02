@@ -5,48 +5,97 @@ LABEL maintainer="Connor Hanan"
 LABEL org.opencontainers.image.title="datascience-goose"
 LABEL org.opencontainers.image.authors="Connor Hanan"
 LABEL org.opencontainers.image.description="Python, R, Julia + goose Development Container"
-LABEL org.opencontainers.image.created="2026-01-12"
+LABEL org.opencontainers.image.created="2026-02-01"
 
-# build args
-ARG TARGETARCH
-ARG INCLUDE_GOOSE=true
-ARG INCLUDE_R=true
-ARG INCLUDE_JULIA=true
-ARG INCLUDE_RALPH=false
+# default build args
+ARG INCLUDE_R_ARG=false
+ARG INCLUDE_JULIA_ARG=false
+ARG INCLUDE_GOOSE_ARG=false
+ARG INCLUDE_CLAUDE_CODE_ARG=false
+ARG INCLUDE_RALPH_ARG=false
 
-# setup env
-ENV DEBIAN_FRONTEND=noninteractive
-ENV LANG=en_US.UTF-8  
-ENV LANGUAGE=en_US:en  
-ENV LC_ALL=en_US.UTF-8
-ENV JULIAUP_DEPOT_PATH=/opt/juliaup
-ENV JULIA_DEPOT_PATH=/opt/julia
-ENV INCLUDE_R=$INCLUDE_R
-ENV INCLUDE_JULIA=$INCLUDE_JULIA
-ENV INCLUDE_GOOSE=$INCLUDE_GOOSE
+# convert to env vars
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8 \
+    JULIAUP_DEPOT_PATH=/opt/juliaup \
+    JULIA_DEPOT_PATH=/opt/julia \
+    INCLUDE_R=$INCLUDE_R_ARG \
+    INCLUDE_JULIA=$INCLUDE_JULIA_ARG \
+    INCLUDE_GOOSE=$INCLUDE_GOOSE_ARG \
+    INCLUDE_CLAUDE_CODE=$INCLUDE_CLAUDE_CODE_ARG \
+    INCLUDE_RALPH=$INCLUDE_RALPH_ARG
 
-# install base packages and R/Julia - exit on error
-RUN <<INSTALL_EOF
-    set -ex
-    # GENERAL ----
-    # general tools, R tools
+# copy local config file
+COPY ./config.json ./
+
+# install base packages and setup environment based on config - exit on error
+RUN bash <<'ENV_SETUP_EOF'
+    set -e
     apt-get update && apt-get install -y --no-install-recommends \
         git curl vim wget htop tree zip unzip jq less sudo locales \
         build-essential pkg-config \
         openssh-client ca-certificates gnupg \
         ripgrep
-    # set locale
+
     echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
     locale-gen
+
+    # var_name|yaml_key
+    VARS="
+    INCLUDE_R|lang.r.enabled
+    INCLUDE_JULIA|lang.julia.enabled
+    INCLUDE_GOOSE|platform.goose.enabled
+    INCLUDE_CLAUDE_CODE|platform.claude_code.enabled
+    INCLUDE_RALPH|tool.ralph.enabled
+    "
+
+    CONFIG_FILE=./config.json
+    rm -f /env.out
+
+    for entry in $VARS; do
+        varname=${entry%%|*}
+        jqkey=${entry##*|}
+        jqexpr=".$jqkey"  # ensure expression starts with dot
+
+        val=""
+        if [ -f "$CONFIG_FILE" ]; then
+            val="$(jq -r "${jqexpr}" "$CONFIG_FILE" 2>/dev/null || true)"
+        fi
+
+        eval fallback="\$$varname"
+        val="${val:-$fallback}"
+        val="${val:-false}"
+
+        # Normalize
+        if [ "$val" = "1" ] || [ "$val" = "true" ]; then
+            val="true"
+        else
+            val="false"
+        fi
+
+        echo "$varname=$val" >> /env.out
+    done
+
+    # update environment variables
+    set -a
+    source /env.out
+    set +a
+    rm -f /env.out
+
+    # -------------------------------------
+    # LANGUAGES
+    # -------------------------------------
     # PYTHON (Base Image) ----
     pip install --no-cache-dir --upgrade pip uv
-    # R (Conditional) ----
+    # R ----
     if [ "$INCLUDE_R" = "true" ]; then
         apt-get update && apt-get install -y --no-install-recommends \
             r-base r-base-dev libcurl4-openssl-dev libssl-dev libxml2-dev
         ln -sf /usr/bin/Rscript /usr/local/bin/Rscript
     fi
-    # JULIA (Conditional) ----
+    # JULIA ----
     if [ "$INCLUDE_JULIA" = "true" ]; then
         curl -fsSL https://install.julialang.org | sh -s -- --yes --path /opt/juliaup
         mkdir -p /opt/julia
@@ -54,40 +103,35 @@ RUN <<INSTALL_EOF
         chmod -R 777 /opt/juliaup
         ln -sf /opt/juliaup/bin/julia /usr/local/bin/julia
     fi
-    # CLEANUP ----
-    apt-get clean
-    rm -rf /var/lib/apt/lists/*
-INSTALL_EOF
-
-# install goose
-RUN <<GOOSE_EOF
-    if [ "$INCLUDE_GOOSE" != "true" ]; then
-        echo "Skipping Goose installation."
-        exit 0
+    # -------------------------------------
+    # PLATFORMS
+    # -------------------------------------
+    # GOOSE ----
+    if [ "$INCLUDE_GOOSE" = "true" ]; then
+        mkdir -p /tmp/goose-extract
+        curl -fsSL https://github.com/block/goose/releases/download/stable/goose-x86_64-unknown-linux-gnu.tar.bz2 -o /tmp/goose-extract/goose.tar.bz2
+        tar -xjf /tmp/goose-extract/goose.tar.bz2 -C /tmp/goose-extract
+        mv /tmp/goose-extract/goose /usr/local/bin/goose
+        chmod +x /usr/local/bin/goose
+        rm -rf /tmp/goose-cli.tar.bz2 /tmp/goose-extract
+        goose --version
     fi
-    set -ex
-    trap 'rm -rf /tmp/goose-cli.tar.bz2 /tmp/goose-extract' EXIT
-    # check architecture and download appropriate binary
-    # possible values: x86_64, aarch64, etc. - default to x86_64 if unknown
-    # unzip and make executable
-    if [ "$TARGETARCH" = "amd64" ]; then 
-        ARCH="x86_64";
-    elif [ "$TARGETARCH" = "arm64" ]; then 
-        ARCH="aarch64";
-    else 
-        ARCH="x86_64"; 
+    # CLAUDE CODE ----
+    if [ "$INCLUDE_CLAUDE_CODE" = "true" ]; then
+        curl -fsSL https://claude.ai/install.sh | bash
+        CLAUDE_BASE="/root/.local/share/claude"
+        CLAUDE_VER=$(ls $CLAUDE_BASE/versions | sort -V | tail -n1)
+        mkdir -p /usr/local/share/claude
+        cp -r $CLAUDE_BASE/versions/$CLAUDE_VER /usr/local/share/claude/
+        cp -r $CLAUDE_BASE/data /usr/local/share/claude/ 2>/dev/null || true
+        ln -sf /usr/local/share/claude/$CLAUDE_VER /usr/local/bin/claude
+        chmod -R a+rx /usr/local/share/claude
     fi
-    URL="https://github.com/block/goose/releases/download/stable/goose-${ARCH}-unknown-linux-gnu.tar.bz2"
-    mkdir -p /tmp/goose-extract
-    curl -fsSL "$URL" -o /tmp/goose-extract/goose.tar.bz2
-    tar -xjf /tmp/goose-extract/goose.tar.bz2 -C /tmp/goose-extract
-    mv /tmp/goose-extract/goose /usr/local/bin/goose
-    chmod +x /usr/local/bin/goose
-    rm -rf /tmp/goose-cli.tar.bz2 /tmp/goose-extract
-    goose --version
-    # optional Ralph for goose installation
+    # -------------------------------------
+    # TOOLS
+    # -------------------------------------
+    # RALPH ----
     if [ "$INCLUDE_RALPH" = "true" ]; then
-        set -ex
         mkdir -p /home/developer/.config/goose/recipes
         # sparse checkout ralph folder from ai_tooling repo
         git clone --filter=blob:none --no-checkout https://github.com/syrchanan/ai_tooling.git /tmp/ai_tooling
@@ -99,10 +143,14 @@ RUN <<GOOSE_EOF
         cd /
         rm -rf /tmp/ai_tooling
     fi
-GOOSE_EOF
+    # CLEANUP ----
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+    rm -f ./config.json
+ENV_SETUP_EOF
 
 # Create dev user, workspace and .ssh directories - exit on error
-RUN <<USER_EOF
+RUN bash <<USER_EOF
     set -ex
     # create developer user with sudo permissions
     useradd -ms /bin/bash developer
@@ -141,18 +189,21 @@ alias grep='grep --color=auto'
 if [[ $- == *i* ]]; then
     echo ""
     echo "╔════════════════════════════════════════════════════════╗"
-    echo "║  Python, R, Julia + goose Development Container        ║"
+    echo "║  DS & AI Development Container                         ║"
     echo "╚════════════════════════════════════════════════════════╝"
     echo ""
     echo " Python:   $(python --version 2>&1)"
-    if [ "$INCLUDE_R" = "true" ]; then
+    if command -v R >/dev/null 2>&1; then
     echo " R:        $(R --version | head -n 1 2>&1)"
     fi
-    if [ "$INCLUDE_JULIA" = "true" ]; then
+    if command -v julia >/dev/null 2>&1; then
     echo " Julia:    $(julia --version 2>&1)"
     fi
-    if [ "$INCLUDE_GOOSE" = "true" ]; then
+    if command -v goose >/dev/null 2>&1; then
     echo " goose:   $(goose --version 2>&1)"
+    fi
+    if command -v claude >/dev/null 2>&1; then
+    echo " claude:   $(claude --version 2>&1)"
     fi
     echo ""
     echo ""
@@ -160,7 +211,7 @@ if [[ $- == *i* ]]; then
     echo "  - Your workspace is located at /workspaces"
     echo "  - Prefer 'uv' to 'pip' for installing Python packages"
     echo ""
-    if [ "$INCLUDE_GOOSE" = "true" ]; then
+    if command -v goose >/dev/null 2>&1; then
     echo " Useful Commands:"
     echo "  - goose configure         Configure your goose environment"
     echo "  - goose session           Start a new goose session"
@@ -180,21 +231,9 @@ if [ -f ~/.bashrc ]; then
 fi
 BASHPROFILE_EOF
 
-# make healthcheck script
-COPY --chown=developer:developer <<'HEALTHCHECK_EOF' /usr/local/bin/healthcheck.sh
-#!/bin/bash
-command -v python && python --version || exit 1
-[ "$INCLUDE_R" = "true" ] && command -v R && R --version | head -n 1 || exit 1
-[ "$INCLUDE_JULIA" = "true" ] && command -v julia && julia --version || exit 1
-[ "$INCLUDE_GOOSE" = "true" ] && command -v goose && goose --version || exit 1
-HEALTHCHECK_EOF
-
-# finalize permissions and switch to user
-RUN chmod +x /usr/local/bin/healthcheck.sh && \ 
-    chown -R developer:developer /home/developer
+# set working directory and user
 WORKDIR /workspaces
 USER developer
-HEALTHCHECK --interval=30s --timeout=5s CMD /usr/local/bin/healthcheck.sh
 
 # set bash as default shell in container
 CMD [ "/bin/bash" ]
