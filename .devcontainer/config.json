@@ -1,0 +1,23 @@
+{
+  "lang": {
+    "r": {
+      "enabled": false
+    },
+    "julia": {
+      "enabled": false
+    }
+  },
+  "platform": {
+    "goose": {
+      "enabled": false
+    },
+    "claude_code": {
+      "enabled": false
+    }
+  },
+  "tool": {
+    "ralph": {
+      "enabled": false
+    }
+  }
+}
