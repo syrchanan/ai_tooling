@@ -2,10 +2,10 @@
 FROM python:3
 
 LABEL maintainer="Connor Hanan"
-LABEL org.opencontainers.image.title="datascience-goose"
+LABEL org.opencontainers.image.title="datascience-ai"
 LABEL org.opencontainers.image.authors="Connor Hanan"
-LABEL org.opencontainers.image.description="Python, R, Julia + goose Development Container"
-LABEL org.opencontainers.image.created="2026-02-01"
+LABEL org.opencontainers.image.description="DS & AI Development Container"
+LABEL org.opencontainers.image.created="2026-02-03"
 
 # default build args
 ARG INCLUDE_R_ARG=false
@@ -232,6 +232,7 @@ fi
 BASHPROFILE_EOF
 
 # set working directory and user
+RUN chown -R developer:developer /home/developer
 WORKDIR /workspaces
 USER developer
 

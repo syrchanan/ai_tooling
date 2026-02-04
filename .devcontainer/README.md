@@ -17,19 +17,19 @@ You can adjust the behavior of your devcontainer build by editing `.devcontainer
 These values are read during the Docker build and mapped to environment variables and build args.
 
 ### `lang` section
-- `lang.r.enabled: true|false`  
+- `lang.r.enabled: false|true`  
   Installs the R language and common R build dependencies.
-- `lang.julia.enabled: true|false`  
+- `lang.julia.enabled: false|true`  
   Installs Julia via JuliaUp.
 
 ### `platform` section
-- `platform.goose.enabled: true|false`  
+- `platform.goose.enabled: false|true`  
   Installs the Goose CLI.
-- `platform.claude_code.enabled: true|false`  
+- `platform.claude_code.enabled: false|true`  
   Installs the Claude Code CLI.
 
 ### `tool` section
-- `tool.ralph.enabled: true|false`  
+- `tool.ralph.enabled: false|true`  
   Auto-downloads the Ralph workflow tool to ~/.config/goose/recipes.
 
 #### Example (defaults)
@@ -59,7 +59,7 @@ These values are read during the Docker build and mapped to environment variable
 }
 ```
 
-These options also correspond to Docker build arguments (e.g., `INCLUDE_R_ARG`) and will default to true/false as in the file if not specified.
+These options also correspond to Docker build arguments (e.g., `INCLUDE_R_ARG`) and will default to false as in the file if not specified.
 
 ---
 
@@ -67,9 +67,9 @@ These options also correspond to Docker build arguments (e.g., `INCLUDE_R_ARG`) 
 
 These can also be passed to `docker build` directly if you wish to override them (advanced):
 
-- `INCLUDE_R_ARG` (default true)
-- `INCLUDE_JULIA_ARG` (default true)
-- `INCLUDE_GOOSE_ARG` (default true)
+- `INCLUDE_R_ARG` (default false)
+- `INCLUDE_JULIA_ARG` (default false)
+- `INCLUDE_GOOSE_ARG` (default false)
 - `INCLUDE_RALPH_ARG` (default false)
 
 ---

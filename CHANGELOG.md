@@ -4,14 +4,16 @@ All notable changes to this project will be documented in this file (via AI, min
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.2] - unreleased
+## [0.2.0] - 2026-02-03
 ### Added
 - `ralph/ralph-loop.sh`: Bash script for running the Ralph Loop (multi-model, iterative agent workflow).
 - `ralph/ralph-work.yaml`: Goose recipe for Ralph work phase (single iteration, fresh context).
 - `ralph/ralph-review.yaml`: Goose recipe for Ralph review phase (cross-model review, SHIP/REVISE decision).
+- `.devcontainer/config.json`: Devcontainer configuration file, enabling custom languages/platforms (all default to false).
+- `.devcontainer/README`: Devcontainer specific configuration instructions.
 
 ### Changed
-- `.devcontainer/Dockerfile`: Improved Julia install (added permissions and symlink for Julia binary), and updated Ralph recipe move to use `mv ralph/*` instead of `mv ralph`.
+- `.devcontainer/Dockerfile`: Improved Julia install (added permissions and symlink for Julia binary), updated Ralph recipe move to use `mv ralph/*` instead of `mv ralph`, added claude code as an option, removed healthcheck script for now.
 - `.devcontainer/devcontainer.json`: Updated `postStartCommand` to pipe output to `/tmp/poststart.log` for easier debugging and troubleshooting of dependency installation.
 - `.devcontainer/poststart.sh`: Refactored to use a `process_files` function for each dependency type, added command existence checks before running actions, and improved output messages.
 
