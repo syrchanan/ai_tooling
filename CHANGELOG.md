@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - `.devcontainer/Dockerfile`: Ralph sparse checkout now clones `syrchanan/utils`.
 - `README.md`: Retitled and rescoped the intro for the rename.
 - `dotfiles/README.md`: Retitled from `utils` to `dotfiles` to avoid confusion with the repo name.
+- Line endings normalized to LF repo-wide via new `.gitattributes` (`* text=auto eol=lf`).
 
 ## [0.3.0] - 2026-11-13
 ### Added
