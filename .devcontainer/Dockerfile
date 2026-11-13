@@ -133,15 +133,15 @@ RUN bash <<'ENV_SETUP_EOF'
     # RALPH ----
     if [ "$INCLUDE_RALPH" = "true" ]; then
         mkdir -p /home/developer/.config/goose/recipes
-        # sparse checkout ralph folder from ai_tooling repo
-        git clone --filter=blob:none --no-checkout https://github.com/syrchanan/ai_tooling.git /tmp/ai_tooling
-        cd /tmp/ai_tooling
+        # sparse checkout ralph folder from utils repo
+        git clone --filter=blob:none --no-checkout https://github.com/syrchanan/utils.git /tmp/utils
+        cd /tmp/utils
         git sparse-checkout init --cone
         git sparse-checkout set ralph
         git checkout main
         mv ralph/* /home/developer/.config/goose/recipes/
         cd /
-        rm -rf /tmp/ai_tooling
+        rm -rf /tmp/utils
     fi
     # CLEANUP ----
     apt-get clean

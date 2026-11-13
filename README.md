@@ -1,6 +1,6 @@
-# AI Tooling
+# utils
 
-This repository is a personal hub for AI development tools, prompts, devcontainers, and agent configuration. It is designed for extensibility and maintainability, with a focus on reproducible development environments and agent behavior customization.
+This repository is a personal grab-bag of utilities: dotfiles and shell helpers, devcontainers, AI agent configuration and workflows, and machine setup scripts. It is designed for extensibility and maintainability, with a focus on reproducible environments.
 
 The devcontainer supports Python, R, and Julia for multi-language AI development, with optional Goose and Claude Code CLIs (opt-in via `.devcontainer/config.json`). The `dotfiles/` folder holds shell config and global agent instructions for the host machine. See below for details.
 

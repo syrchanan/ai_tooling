@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file (via AI, min
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Changed
+- Repository renamed from `ai_tooling` to `utils` to reflect its broader scope as a general personal utilities repo.
+- `.devcontainer/Dockerfile`: Ralph sparse checkout now clones `syrchanan/utils`.
+- `README.md`: Retitled and rescoped the intro for the rename.
+
 ## [0.3.0] - 2026-11-13
 ### Added
 - `dotfiles/install.sh`: Installer that appends `loader.sh` to `~/.bashrc` (backing it up first). Takes `--bash`, `--ai`, `--all` and `-h`, and runs everything when no flags are given.
