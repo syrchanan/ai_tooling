@@ -4,11 +4,12 @@ All notable changes to this project will be documented in this file (via AI, min
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.3.1] - 2026-11-13
 ### Changed
 - Repository renamed from `ai_tooling` to `utils` to reflect its broader scope as a general personal utilities repo.
 - `.devcontainer/Dockerfile`: Ralph sparse checkout now clones `syrchanan/utils`.
 - `README.md`: Retitled and rescoped the intro for the rename.
+- `dotfiles/README.md`: Retitled from `utils` to `dotfiles` to avoid confusion with the repo name.
 
 ## [0.3.0] - 2026-11-13
 ### Added

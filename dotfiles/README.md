@@ -1,6 +1,6 @@
-# utils
+# dotfiles
 
-This folder contains a bunch of snippets and shorthands that I rely on in general in WSL/linux
+Shell config, snippets and shorthands I rely on in WSL/linux, plus global AI agent instructions (`ai/`).
 
 ## usage
 
