@@ -2,26 +2,28 @@
 
 This repository is a personal hub for AI development tools, prompts, devcontainers, and agent configuration. It is designed for extensibility and maintainability, with a focus on reproducible development environments and agent behavior customization.
 
-The devcontainer now supports Python, R, and Julia for multi-language AI development. Goose CLI is included for seamless agent authentication. See below for details.
+The devcontainer supports Python, R, and Julia for multi-language AI development, with optional Goose and Claude Code CLIs (opt-in via `.devcontainer/config.json`). The `dotfiles/` folder holds shell config and global agent instructions for the host machine. See below for details.
 
 ## Contents
 
-### `.github/`
-Custom add-ons and global instructions for AI agents.
+### `dotfiles/`
+Shell config and global AI agent instructions for WSL/Linux, set up via `install.sh`.
 
-- `chatmodes/` — Custom chat modes for agents
-- `instructions/` — Custom agent instructions
-- `prompts/` — Custom prompt templates
-- `AGENTS.md` — Global agent rules and collaboration standards
+- `install.sh` — Installer; run with no flags for everything, or pick with `--bash` / `--ai` (`-h` for help). Idempotent, and backs up anything it replaces.
+- `bash/loader.sh` — Sourced from `~/.bashrc`; loads every `bash/libs/*.sh` in order, then `~/.bashrc.local` if present.
+- `bash/libs/` — Shell helpers and aliases (`10_tools.sh`, `20_alias.sh`).
+- `ai/CLAUDE.md` — Global Claude Code preferences, symlinked to `~/.claude/CLAUDE.md` by `--ai`.
+
+See [Dotfiles README](./dotfiles/README.md) for usage.
 
 ### `.devcontainer/`
 
 Development container configurations for Python, R, Julia, and AI tooling.
 
-- `Dockerfile` — Reproducible dev environment with Python, R, Julia (via juliaup), Goose CLI, and common CLI tools. Includes user setup, shell configuration, and health checks.
+- `Dockerfile` — Reproducible dev environment with Python, R, Julia (via juliaup), optional Goose and Claude Code CLIs, and common CLI tools. Includes user setup and shell configuration.
 - `devcontainer.json` — VS Code/Positron devcontainer configuration, extensions, and environment settings for Python, R, Julia, and Goose development.
 - `poststart.sh` — Post-start script to auto-install detected Python, R, and Julia dependencies for all projects in the workspace (see below for file targets).
-`config.json` — Configuration for language and platform support.
+- `config.json` — Toggles for languages and platforms (Goose, Claude Code, etc.); all default to off.
 
 See [Devcontainer README](./.devcontainer/README.md) for more details.
 
@@ -42,7 +44,7 @@ The Ralph Loop enables iterative agent development with strict review, using dif
 
 ### Agent Rules
 
-`.github/AGENTS.md` is a working doc which contains my personal rules on agent behavior, code style, naming, and collaboration.
+`dotfiles/ai/CLAUDE.md` is a working doc which contains my personal rules on agent behavior, code style, and collaboration.
 
 ### Changelog
 

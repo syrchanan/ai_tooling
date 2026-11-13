@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file (via AI, min
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-11-13
+### Added
+- `dotfiles/install.sh`: Installer that appends `loader.sh` to `~/.bashrc` (backing it up first). Takes `--bash`, `--ai`, `--all` and `-h`, and runs everything when no flags are given.
+- `dotfiles/install.sh`: `--ai` symlinks `dotfiles/ai/CLAUDE.md` to `~/.claude/CLAUDE.md`, backing up any existing file. Idempotent.
+- `dotfiles/bash/loader.sh`: Sources every `bash/libs/*.sh`, then `~/.bashrc.local` if present.
+- `dotfiles/bash/libs/10_tools.sh`, `dotfiles/bash/libs/20_alias.sh`: Shell helpers and aliases.
+- `dotfiles/ai/CLAUDE.md`: Global Claude Code preferences.
+
+### Changed
+- `utils/` renamed to `dotfiles/`; `utils/alias.sh` replaced by `dotfiles/bash/libs/`.
+- `dotfiles/README.md`: Documented install flags.
+- `README.md`: Replaced the stale `.github/` section with `dotfiles/`, pointed Agent Rules at `dotfiles/ai/CLAUDE.md`, described Goose and Claude Code as optional devcontainer CLIs, removed the stale health-check mention, and fixed the `config.json` list formatting.
+
+### Fixed
+- `dotfiles/bash/loader.sh`: Fixed relative symlink resolution (missing `$` in `$_DOTFILES_SOURCE`).
+
+### Removed
+- `.github/AGENTS.md`: Superseded by `dotfiles/ai/CLAUDE.md`.
+
 ## [0.2.0] - 2026-02-03
 ### Added
 - `ralph/ralph-loop.sh`: Bash script for running the Ralph Loop (multi-model, iterative agent workflow).
